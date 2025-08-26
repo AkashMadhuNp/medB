@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medb/core/theme/themes.dart';
 import 'package:medb/presentation/auth/login_screen.dart';
+import 'package:medb/presentation/dashboard/home/home_screen.dart';
 
 void main(){
   runApp(MyApp());
@@ -21,7 +22,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: "MedB",
       theme: AppTheme.lightTheme,
-      home:LoginScreen() ,
+      home:HomeScreen() ,
 
     );
   }

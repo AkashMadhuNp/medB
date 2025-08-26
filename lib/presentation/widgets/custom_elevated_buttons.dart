@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:medb/core/colors/colors.dart';
 
 class CustomElevatedButton extends StatelessWidget {
   final String text;
@@ -16,7 +17,7 @@ class CustomElevatedButton extends StatelessWidget {
     super.key,
     required this.text,
     this.onPressed,
-    this.backgroundColor = const Color(0xFF6F64E7),
+    this.backgroundColor =AppColors.ButtonColor,
     this.textColor = Colors.white,
     this.width,
     this.height = 50,

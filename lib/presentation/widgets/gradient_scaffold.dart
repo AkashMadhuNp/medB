@@ -4,20 +4,19 @@ import 'package:medb/core/colors/colors.dart';
 class GradientScaffold extends StatelessWidget {
   final Widget body;
   final PreferredSizeWidget? appBar;
-  final Widget? floatingActionButton;
 
   const GradientScaffold({
     super.key,
     required this.body,
     this.appBar,
-    this.floatingActionButton, required bool resizeToAvoidBottomInset,
+     required bool resizeToAvoidBottomInset,  Drawer? drawer,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar,
-      floatingActionButton: floatingActionButton,
+      
       body: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
@@ -33,6 +32,7 @@ class GradientScaffold extends StatelessWidget {
           ),
         ),
         child: body,
+        
       ),
     );
   }

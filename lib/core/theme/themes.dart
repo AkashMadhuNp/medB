@@ -91,8 +91,8 @@ class AppTheme {
       
       titleLarge: GoogleFonts.poppins(
         fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: Colors.black87,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
       ),
       titleMedium: GoogleFonts.poppins(
         fontSize: 18,
@@ -129,14 +129,14 @@ class AppTheme {
         color: Colors.black87,
       ),
       labelMedium: GoogleFonts.lato(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Colors.black87,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
       ),
       labelSmall: GoogleFonts.lato(
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: Colors.black54,
+        color: const Color.fromARGB(255, 58, 56, 56),
       ),
     ),
 
