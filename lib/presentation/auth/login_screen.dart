@@ -13,36 +13,34 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final keyboardHeight = mediaQuery.viewInsets.bottom;
+    final isKeyboardVisible = keyboardHeight > 0;
+    
     return GradientScaffold(
       resizeToAvoidBottomInset: true,
-
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              
-              const MedBLogo(),
-              
-              const SizedBox(height: 30),
-              
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      LoginForm(),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.all(9.0),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: isKeyboardVisible ? 10 : 20),
+                
+                const MedBLogo(),
+                
+                SizedBox(height: isKeyboardVisible ? 15 : 30),
+                
+                const LoginForm(),
+                
+                SizedBox(height: isKeyboardVisible ? 20 : 40),
+              ],
+            ),
           ),
         ),
-      ), 
+      ),
     );
   }
 }

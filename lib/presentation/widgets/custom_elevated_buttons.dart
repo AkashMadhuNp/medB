@@ -12,18 +12,22 @@ class CustomElevatedButton extends StatelessWidget {
   final double? fontSize;
   final FontWeight? fontWeight;
   final bool isLoading;
+  final Color? borderColor;
+  final double? borderWidth;
 
   const CustomElevatedButton({
     super.key,
     required this.text,
     this.onPressed,
-    this.backgroundColor =AppColors.ButtonColor,
+    this.backgroundColor = AppColors.ButtonColor,
     this.textColor = Colors.white,
     this.width,
     this.height = 50,
     this.fontSize = 16,
     this.fontWeight = FontWeight.w600,
     this.isLoading = false,
+    this.borderColor,
+    this.borderWidth = 1.0,
   });
 
   @override
@@ -38,6 +42,12 @@ class CustomElevatedButton extends StatelessWidget {
           disabledBackgroundColor: backgroundColor?.withOpacity(0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
+            side: borderColor != null 
+                ? BorderSide(
+                    color: borderColor!,
+                    width: borderWidth ?? 1.0,
+                  )
+                : BorderSide.none,
           ),
           elevation: 2,
         ),

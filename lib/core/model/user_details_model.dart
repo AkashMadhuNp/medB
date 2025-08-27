@@ -6,21 +6,15 @@ class UserDetails {
   final String email;
   final String contactNo;
   final bool isEmailVerified;
-  final String? profileImage;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
 
   UserDetails({
     required this.id,
     required this.firstName,
-    this.middleName = '',
+    required this.middleName,
     required this.lastName,
     required this.email,
     required this.contactNo,
-    this.isEmailVerified = false,
-    this.profileImage,
-    this.createdAt,
-    this.updatedAt,
+    required this.isEmailVerified,
   });
 
   factory UserDetails.fromJson(Map<String, dynamic> json) {
@@ -32,20 +26,19 @@ class UserDetails {
       email: json['email'] ?? '',
       contactNo: json['contactNo'] ?? '',
       isEmailVerified: json['isEmailVerified'] ?? false,
-      profileImage: json['profileImage'],
-      createdAt: json['createdAt'] != null 
-          ? DateTime.tryParse(json['createdAt']) 
-          : null,
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.tryParse(json['updatedAt']) 
-          : null,
     );
   }
 
-  String get fullName {
-    final names = [firstName, middleName, lastName]
-        .where((name) => name.isNotEmpty)
-        .join(' ');
-    return names;
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'middleName': middleName,
+      'lastName': lastName,
+      'email': email,
+      'contactNo': contactNo,
+      'isEmailVerified': isEmailVerified,
+    };
   }
 }
+

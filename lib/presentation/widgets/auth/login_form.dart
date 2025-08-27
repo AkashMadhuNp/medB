@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:medb/presentation/BLoC/login/bloc/login_bloc.dart';
+import 'package:medb/presentation/BLoC/login/bloc/login_event.dart';
+import 'package:medb/presentation/BLoC/login/bloc/login_state.dart';
+import 'package:medb/presentation/widgets/auth/divider.dart';
 import 'package:medb/core/colors/colors.dart';
 import 'package:medb/core/utils/validators.dart';
-import 'package:medb/core/service/api_service.dart';
-import 'package:medb/core/model/api_error_model.dart';
 import 'package:medb/presentation/auth/signup_screen.dart';
 import 'package:medb/presentation/dashboard/home/home_screen.dart';
+import 'package:medb/presentation/widgets/auth_header.dart';
 import 'package:medb/presentation/widgets/custom_elevated_buttons.dart';
 import 'package:medb/presentation/widgets/custom_text_field.dart';
+import 'package:medb/presentation/widgets/loading_overlay.dart';
 import 'package:medb/presentation/widgets/password_textfields.dart';
+import 'package:medb/presentation/widgets/forgot_password_link.dart';
+import 'package:medb/presentation/widgets/shimmer_text_field.dart';
+import 'package:medb/presentation/widgets/sign_up_link.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -21,19 +28,28 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  late ApiService _apiService;
+  late LoginBloc _loginBloc;
+  bool _isNavigating = false; 
 
   @override
   void initState() {
     super.initState();
-    _apiService = ApiService();
+    _clearForm();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loginBloc = context.read<LoginBloc>();
+    _loginBloc.add(LoginReset());
+    ScaffoldMessenger.of(context).clearSnackBars();
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _loginBloc.add(LoginReset());
     super.dispose();
   }
 
@@ -43,7 +59,7 @@ class _LoginFormState extends State<LoginForm> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.lato(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
@@ -61,9 +77,9 @@ class _LoginFormState extends State<LoginForm> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.lato(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.lblu,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -74,224 +90,134 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _navigateToDashboard() {
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(),));
+    setState(() {
+      _isNavigating = true; 
+    });
+
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+        );
+      }
+    });
   }
 
-  void _handleLogin() async {
+  void _handleLogin() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    _loginBloc.add(LoginSubmitted(
+      email: _emailController.text,
+      password: _passwordController.text,
+    ));
+  }
 
-    try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-
-      print('Attempting login for: $email');
-
-      final loginResponse = await _apiService.login(email, password);
-
-      print('Login successful for user: ${loginResponse.userDetails.fullName}');
-
-      _showSuccessSnackBar(
-        'Welcome back, ${loginResponse.userDetails.firstName}!'
-      );
-
-      await Future.delayed(const Duration(milliseconds: 1500));
-      
-      if (mounted) {
-        _navigateToDashboard();
-      }
-
-    } on ApiError catch (e) {
-      print('API Error during login: ${e.message}');
-      
-      String errorMessage = e.message ?? 'Login failed';
-      
-      if (e.statuscode == 401) {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (e.statuscode == 403) {
-        errorMessage = 'Please verify your email before logging in.';
-      } else if (e.statuscode == 429) {
-        errorMessage = 'Too many login attempts. Please try again later.';
-      }
-      
-      _showErrorSnackBar(errorMessage);
-      
-    } catch (e) {
-      print('Unexpected error during login: $e');
-      _showErrorSnackBar(
-        'An unexpected error occurred. Please try again.'
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  void _clearForm() {
+    _emailController.clear();
+    _passwordController.clear();
+    _formKey.currentState?.reset();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    "Welcome Back!",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Sign in to continue your healthcare journey",
-                    style: GoogleFonts.lato(
-                      fontSize: 14,
-                      color: Colors.black54,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            const SizedBox(height: 8),
-            CustomTextField(
-              hintText: "Enter your email",
-              prefixIcon: Icons.email_outlined,
-              controller: _emailController,
-              validator: Validators.validateEmail,
-              keyboardType: TextInputType.emailAddress,
-              
-            ),
-            
-            const SizedBox(height: 20),
-                       
-            PasswordTextField(
-              hintText: "Enter your password",
-              controller: _passwordController,
-              validator: Validators.validatePassword,
-            ),
+    return BlocListener<LoginBloc, LoginState>(
+      listener: (context, state) {
+        if (state is LoginSuccess) {
+          _showSuccessSnackBar(state.message);
+          _navigateToDashboard();
+        } else if (state is LoginFailure) {
+          _showErrorSnackBar(state.errorMessage);
+        }
+      },
+      child: BlocBuilder<LoginBloc, LoginState>(
+        builder: (context, state) {
+          final isLoading = state is LoginLoading;
 
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: GestureDetector(
-                onTap: _isLoading ? null : () {
-                  print("Forgot password tapped");
-                  // TODO: Navigate to forgot password screen
-                },
-                child: Text(
-                  "Forgot Password?",
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: _isLoading 
-                        ? AppColors.primaryBlue.withOpacity(0.5)
-                        : AppColors.primaryBlue,
-                  ),
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            CustomElevatedButton(
-              text: 'Sign In',
-              onPressed: _isLoading ? null : _handleLogin,
-              isLoading: _isLoading,
-            ),
-            
-            const SizedBox(height: 24),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey.shade300,
-                    thickness: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    "OR",
-                    style: GoogleFonts.lato(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey.shade300,
-                    thickness: 1,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Don't have an account? ",
-                    style: GoogleFonts.lato(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _isLoading ? null : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "Sign Up",
-                      style: GoogleFonts.lato(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: _isLoading 
-                            ? AppColors.primaryBlue.withOpacity(0.5)
-                            : AppColors.primaryBlue,
-                      ),
-                    ),
+          return LoadingOverlay(
+            isLoading: _isNavigating, 
+            loadingText: "Redirecting to Dashboard...", 
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AuthHeader(
+                      title: 'Welcome Back!',
+                      subtitle: 'Sign in to continue your healthcare journey',
+                      isLoading: isLoading,
+                    ),
+                    const SizedBox(height: 32),
+                    if (isLoading)
+                      const ShimmerTextField()
+                    else
+                      CustomTextField(
+                        hintText: 'Enter your email',
+                        prefixIcon: Icons.email_outlined,
+                        controller: _emailController,
+                        validator: Validators.validateEmail,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                    const SizedBox(height: 20),
+                    if (isLoading)
+                      const ShimmerTextField()
+                    else
+                      PasswordTextField(
+                        hintText: 'Enter your password',
+                        controller: _passwordController,
+                        validator: Validators.validatePassword,
+                      ),
+                    const SizedBox(height: 8),
+                    ForgotPasswordLink(
+                      isLoading: isLoading,
+                      onTap: () {
+                        print('Forgot password tapped');
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    CustomElevatedButton(
+                      text: 'Sign In',
+                      onPressed: isLoading ? null : _handleLogin,
+                      isLoading: isLoading,
+                    ),
+                    const SizedBox(height: 24),
+                    OrDivider(isLoading: isLoading),
+                    const SizedBox(height: 24),
+                    SignUpLink(
+                      isLoading: isLoading,
+                      onTap: () {
+                        _clearForm();
+                        _loginBloc.add(LoginReset());
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -73,9 +73,9 @@ class AppTheme {
     textTheme: TextTheme(
       
       headlineLarge: GoogleFonts.poppins(
-        fontSize: 28,
+        fontSize: 12,
         fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        color: Colors.white,
       ),
       headlineMedium: GoogleFonts.poppins(
         fontSize: 24,
@@ -96,8 +96,8 @@ class AppTheme {
       ),
       titleMedium: GoogleFonts.poppins(
         fontSize: 18,
-        fontWeight: FontWeight.w500,
-        color: Colors.black87,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
       ),
       titleSmall: GoogleFonts.poppins(
         fontSize: 16,

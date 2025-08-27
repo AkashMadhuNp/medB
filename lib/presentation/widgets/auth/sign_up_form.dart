@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:medb/core/model/api_error_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:medb/core/model/user_model.dart';
-import 'package:medb/core/service/api_service.dart';
 import 'package:medb/core/utils/validators.dart';
+import 'package:medb/presentation/BLoC/signup/bloc/signup_bloc.dart';
+import 'package:medb/presentation/BLoC/signup/bloc/signup_event.dart';
+import 'package:medb/presentation/BLoC/signup/bloc/signup_state.dart';
+import 'package:medb/presentation/auth/login_screen.dart';
+import 'package:medb/presentation/widgets/custom_elevated_buttons.dart';
 import 'package:medb/presentation/widgets/custom_text_field.dart';
 import 'package:medb/presentation/widgets/password_textfields.dart';
 
@@ -23,9 +27,6 @@ class _SignUpFormState extends State<SignUpForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _isLoading = false;
-  String? _errorMessage;
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -38,56 +39,47 @@ class _SignUpFormState extends State<SignUpForm> {
     super.dispose();
   }
 
-  Future<void> _handleSignUp() async {
+  void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+      final user = UserModel(
+        firstName: _firstNameController.text.trim(),
+        middleName: _middleNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        contactNo: _phoneController.text.trim(),
+        password: _passwordController.text,
+        confirmPassword: _confirmPasswordController.text,
+      );
 
-      try {
-        final user = UserModel(
-          firstName: _firstNameController.text.trim(),
-          middleName: _middleNameController.text.trim(), // Added
-          lastName: _lastNameController.text.trim(),
-          email: _emailController.text.trim(),
-          contactNo: _phoneController.text.trim(),
-          password: _passwordController.text,
-          confirmPassword: _confirmPasswordController.text,
-        );
-
-        final apiService = ApiService();
-        final message = await apiService.register(user);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$message Please verify your email before logging in'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen(),));
-        }
-      } on ApiError catch (e) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = e.message;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'An unexpected error occurred';
-          });
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
+      context.read<SignUpBloc>().add(SignUpSubmitted(user: user));
     }
+  }
+
+  void _clearForm() {
+    _emailController.clear();
+    _firstNameController.clear();
+    _middleNameController.clear();
+    _lastNameController.clear();
+    _phoneController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    
+    // Reset form validation state
+    _formKey.currentState?.reset();
+  }
+
+  void _navigateToLogin() {
+    // Clear form data before navigation
+    _clearForm();
+    
+    // Reset BLoC state
+    context.read<SignUpBloc>().add(SignUpFormReset());
+    
+    // Navigate to login screen and remove all previous routes
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (Route<dynamic> route) => false, // This removes all previous routes
+    );
   }
 
   String? _validateConfirmPassword(String? value) {
@@ -124,41 +116,162 @@ class _SignUpFormState extends State<SignUpForm> {
             ),
           ],
         ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context),
-              const SizedBox(height: 32),
-              _buildEmailField(),
-              const SizedBox(height: 20),
-              _buildFirstNameField(),
-              const SizedBox(height: 20),
-              _buildNameFields(isSmallScreen),
-              const SizedBox(height: 20),
-              _buildPhoneField(),
-              const SizedBox(height: 20),
-              _buildPasswordField(),
-              const SizedBox(height: 20),
-              _buildConfirmPasswordField(),
-              const SizedBox(height: 20),
-              if (_isLoading) const Center(child: CircularProgressIndicator()),
-              if (_errorMessage != null)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+        child: BlocConsumer<SignUpBloc, SignUpState>(
+          listener: (context, state) {
+            if (state is SignUpSuccess) {
+              // Show success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          state.message,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              _buildSignUpButton(),
-              const SizedBox(height: 24),
-              _buildSignInLink(context),
-            ],
-          ),
+              );
+              
+              Future.delayed(const Duration(milliseconds: 1500), () {
+                if (mounted) {
+                  _navigateToLogin();
+                }
+              });
+            } else if (state is SignUpFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(
+                        Icons.error,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          state.errorMessage,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 32),
+                  _buildEmailField(),
+                  const SizedBox(height: 20),
+                  _buildFirstNameField(),
+                  const SizedBox(height: 20),
+                  _buildNameFields(isSmallScreen),
+                  const SizedBox(height: 20),
+                  _buildPhoneField(),
+                  const SizedBox(height: 20),
+                  _buildPasswordField(),
+                  const SizedBox(height: 20),
+                  _buildConfirmPasswordField(),
+                  const SizedBox(height: 30),
+                  
+                  // Loading indicator and error message
+                  if (state is SignUpLoading) ...[
+                    const Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF6F64E7),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'Creating your account...',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  
+                  if (state is SignUpFailure) ...[
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.errorMessage,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  
+                  _CustomSignUpButton(),
+                  const SizedBox(height: 24),
+                  _buildSignInLink(context),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -170,13 +283,18 @@ class _SignUpFormState extends State<SignUpForm> {
         children: [
           Text(
             "Create Account",
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF6F64E7),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             "Join us for better healthcare",
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.black54,
+                  fontSize: 16,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -279,28 +397,12 @@ class _SignUpFormState extends State<SignUpForm> {
     );
   }
 
-  Widget _buildSignUpButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleSignUp, 
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6F64E7),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-        ),
-        child: const Text(
-          'Create Account',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
+
+  Widget _CustomSignUpButton(){
+    return CustomElevatedButton(
+      text: "Create Account",
+      onPressed:_handleSignUp ,
+      );
   }
 
   Widget _buildSignInLink(BuildContext context) {
@@ -315,7 +417,10 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
           ),
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              _clearForm();
+              Navigator.pop(context);
+            },
             child: Text(
               "Sign In",
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

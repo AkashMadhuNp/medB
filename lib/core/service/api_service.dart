@@ -82,6 +82,7 @@ class ApiService {
 
 
       if (response.statusCode == 200) {
+        print(response.data);
         final loginResponse = LoginResponse.fromJson(response.data);
         
         await AuthService.storeLoginData(loginResponse);
@@ -175,36 +176,6 @@ class ApiService {
       await AuthService.clearLoginData();
       
       return "Logged out successfully";
-    }
-  }
-
-  Future<Response> authenticatedRequest(
-    String path, {
-    String method = 'GET',
-    Map<String, dynamic>? data,
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    try {
-      final options = Options(method: method);
-      
-      switch (method.toUpperCase()) {
-        case 'GET':
-          return await _dio.get(path, queryParameters: queryParameters, options: options);
-        case 'POST':
-          return await _dio.post(path, data: data, queryParameters: queryParameters, options: options);
-        case 'PUT':
-          return await _dio.put(path, data: data, queryParameters: queryParameters, options: options);
-        case 'DELETE':
-          return await _dio.delete(path, data: data, queryParameters: queryParameters, options: options);
-        default:
-          throw ApiError(message: "Unsupported HTTP method: $method");
-      }
-    } on DioException catch (e) {
-      if (e.error is ApiError) {
-        throw e.error as ApiError;
-      } else {
-        throw ApiError.fromDioException(e);
-      }
     }
   }
 }
