@@ -80,3 +80,8 @@ Clears local stored data
 - Request/response format for token refresh
 
 - Whether refresh returns full login response or just new accessToken
+
+
+### Tried to fetch appoinment menu icon its showing error because pngtree.com has strict anti-hotlinking protection that can't be bypassed easily, even with headers.
+
+### in menu instead of calling module name i gone for the user name (hardcoded) as per the webui. the image icon is fetched from the module icon

@@ -94,7 +94,7 @@ class _DynamicDrawerState extends State<DynamicDrawer> {
                 Expanded(
                   child: Text(
                     userDetails != null
-                        ? '${userDetails.firstName} ${userDetails.lastName ?? ''}'
+                        ? module.moduleName
                         : module.moduleName,
                     style: TextStyle(
                       fontSize: 16,
@@ -154,44 +154,48 @@ class _DynamicDrawerState extends State<DynamicDrawer> {
   }
 
   Widget _buildIcon(String? iconUrl, {double size = 24}) {
-    if (iconUrl != null && iconUrl.isNotEmpty && iconUrl.startsWith('http')) {
-      return Image.network(
-        iconUrl,
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
-          print('🔴 Failed to load icon: $iconUrl');
-          print('🔴 Error Type: ${error.runtimeType}');
-          print('🔴 Error Details: $error');
-          if (stackTrace != null) {
-            print('🔴 Stack Trace: ${stackTrace.toString().split('\n').take(3).join('\n')}');
-          }
-          
-          return Icon(
-            _getFallbackIcon(iconUrl), 
-            size: size, 
-            color: Colors.grey[600]
-          );
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / 
-                    loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
-        },
-      );
-    }
-    return Icon(_getFallbackIcon(null), size: size, color: Colors.grey[600]);
+  if (iconUrl != null && iconUrl.isNotEmpty && iconUrl.startsWith('http')) {
+    return Image.network(
+      iconUrl,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://pngtree.com/',
+      },
+      errorBuilder: (context, error, stackTrace) {
+        print('🔴 Failed to load icon: $iconUrl');
+        print('🔴 Error Type: ${error.runtimeType}');
+        print('🔴 Error Details: $error');
+        if (stackTrace != null) {
+          print('🔴 Stack Trace: ${stackTrace.toString().split('\n').take(3).join('\n')}');
+        }
+        
+        return Icon(
+          _getFallbackIcon(iconUrl), 
+          size: size, 
+          color: Colors.grey[600]
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          width: size,
+          height: size,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded / 
+                  loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+    );
   }
+  return Icon(_getFallbackIcon(null), size: size, color: Colors.grey[600]);
+}
 
   IconData _getFallbackIcon(String? iconUrl) {
     if (iconUrl != null) {
