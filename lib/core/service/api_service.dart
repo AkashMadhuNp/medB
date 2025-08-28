@@ -39,6 +39,8 @@ class ApiService {
       onError: (DioException e, ErrorInterceptorHandler handler) async {
 
         if (e.response?.statusCode == 401) {
+          
+          
           print('Access token expired (401). Session ended.');
           
           await AuthService.clearLoginData();
