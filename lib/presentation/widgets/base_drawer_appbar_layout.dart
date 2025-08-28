@@ -176,7 +176,7 @@ class BaseLayout extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Notifications - Coming Soon!'),
-            backgroundColor: Colors.blue,
+            backgroundColor: AppColors.lblu,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -189,7 +189,7 @@ class BaseLayout extends StatelessWidget {
       SnackBar(
         content: Text('$screenName - Coming Soon!'),
         duration: const Duration(seconds: 2),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.lblu,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -218,7 +218,7 @@ class BaseLayout extends StatelessWidget {
         ),
         content: Text(
           "Are you sure you want to logout?",
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.labelMedium,
           textAlign: TextAlign.center,
         ),
         actions: [
@@ -237,11 +237,15 @@ class BaseLayout extends StatelessWidget {
                         const LogoutCancelledEvent(),
                       );
                     },
-                    child: Text(
-                      'Cancel',
-                      style: GoogleFonts.lato(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w600,
+                    child: Container(
+                      color: Colors.red,
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          color: AppColors.surface,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -251,7 +255,7 @@ class BaseLayout extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.primaryBlue,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: BlocBuilder<BaseLayoutBloc, BaseLayoutState>(
