@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:medb/core/service/auth_service.dart';
 import 'package:medb/core/service/api_service.dart';
+import 'package:medb/core/service/navigation_service.dart';
 import 'package:medb/core/theme/themes.dart';
 import 'package:medb/presentation/BLoC/baselayout/bloc/baselayout_bloc.dart';
 import 'package:medb/presentation/BLoC/login/bloc/login_bloc.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        navigatorKey: NavigationService.navigatorKey,
         debugShowCheckedModeBanner: false,
         title: "MedB",
         theme: AppTheme.lightTheme,

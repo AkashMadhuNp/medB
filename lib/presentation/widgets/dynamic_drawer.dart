@@ -48,9 +48,16 @@ class _DynamicDrawerState extends State<DynamicDrawer> {
               padding: EdgeInsets.zero,
               children: _buildMenuItems(context, menuModules, userDetails),
             ),
+
+            
           ),
+
+
+
         ],
       ),
+
+      
     );
   }
 

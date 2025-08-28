@@ -227,7 +227,7 @@ class BaseLayout extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Colors.red,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: TextButton(
@@ -237,15 +237,12 @@ class BaseLayout extends StatelessWidget {
                         const LogoutCancelledEvent(),
                       );
                     },
-                    child: Container(
-                      color: Colors.red,
-                      child: Text(
-                        'Cancel',
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: AppColors.surface,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.lato(
+                        fontSize: 12,
+                        color: AppColors.surface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -283,6 +280,7 @@ class BaseLayout extends StatelessWidget {
                             : Text(
                                 'Yes, Logout',
                                 style: GoogleFonts.lato(
+                                  fontSize: 12,
                                   color: AppColors.surface,
                                   fontWeight: FontWeight.w600,
                                 ),
